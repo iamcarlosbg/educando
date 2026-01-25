@@ -10,7 +10,6 @@
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,#07102a 0%, #021022 100%);color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:auto;touch-action:auto}
 @media (pointer:coarse){canvas{touch-action:none}body{touch-action:auto;overflow:auto}}
 .game-wrap{width:100%;max-width:900px;background:linear-gradient(180deg,#ffffffee,#f8fafcdd);border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.5);position:relative;overflow:hidden}
-.game-wrap.manual-full{position:fixed;inset:0;width:100%;height:100%;max-width:none;border-radius:0;z-index:9999}
 .panel{background:#f1f5f9;padding:8px 10px;border-radius:10px;margin:8px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
 .problem{font-size:clamp(20px,4vw,28px);font-weight:700;color:var(--accent)}
 .stats{font-size:clamp(14px,3vw,18px);color:#1e3a8a}
@@ -96,7 +95,7 @@ updateVH();window.addEventListener("resize",updateVH);window.addEventListener("o
 <script>
 (() => {
 const canvas=document.getElementById("canvas");const ctx=canvas.getContext("2d");
-let W,H,score,lives,enemies,bullets,player,frame,gameOver=false;
+let W,H,score,lives,enemies,bullets,player,frame,gameOver=false,targetX;
 let speedLevel=1,diffLevel=1,problem;
 const scoreE=document.getElementById("score");const livesE=document.getElementById("lives");const probE=document.getElementById("problem");
 const overlay=document.getElementById("overlay");const endScore=document.getElementById("endScore");
@@ -139,11 +138,26 @@ function spawnEnemies(){
 }
 
 function start(){
-  speedLevel=+document.getElementById("speedLevel").value;diffLevel=+document.getElementById("diffLevel").value;
-  document.getElementById("menu").classList.add("hide");document.getElementById("hud").classList.remove("hide");
-  resizeCanvas();score=0;lives=3;frame=0;bullets=[];enemies=[];particles.length=0;
-  player={x:W/2,y:H-60,w:70,h:25};overlay.style.display="none";gameOver=false;nextProblem();
-  bgm.volume=0.35;bgm.play().catch(()=>{});requestAnimationFrame(loop);
+  speedLevel = +document.getElementById("speedLevel").value;
+  diffLevel = +document.getElementById("diffLevel").value;
+
+  document.getElementById("menu").classList.add("hide");
+  document.getElementById("hud").classList.remove("hide");
+
+  resizeCanvas();
+  score = 0; lives = 3; frame = 0;
+  bullets = []; enemies = []; particles.length = 0;
+
+  player = { x: W/2, y: H-60, w: 70, h: 25 };
+  targetX = player.x;
+
+  overlay.style.display = "none";
+  gameOver = false;
+
+  nextProblem();
+  bgm.volume = 0.35;
+  bgm.play().catch(()=>{});
+  requestAnimationFrame(loop);
 }
 
 function nextProblem(){problem=genProblem();probE.textContent=`${problem.a} ${problem.op} ${problem.b} = ?`;spawnEnemies();}
@@ -163,18 +177,30 @@ function hitEnemy(index){
   else { score = Math.max(0, score-5); scoreE.textContent = score; }
 }
 
-function shoot(){
-  bullets.push({x:player.x, y:player.y, dy:10});
-  if(sndShoot) try{ sndShoot.currentTime=0; sndShoot.play(); }catch(e){}
-}
+function shoot(){ bullets.push({x:player.x, y:player.y, dy:10}); if(sndShoot) try{ sndShoot.currentTime=0; sndShoot.play(); }catch(e){} }
 
 function update(){frame++; 
+  // movimiento suave hacia targetX
+  if(targetX !== undefined){
+    const dx = targetX - player.x;
+    const speed = 6;
+    if(Math.abs(dx) <= speed){
+      player.x = targetX;
+      targetX = undefined;
+      shoot();
+    } else {
+      player.x += dx * 0.2;
+    }
+  }
+
   bullets.forEach((b,i)=>{ b.y -= b.dy; if(b.y < 0) bullets.splice(i,1); });
+
   const now = performance.now();
   for(let i=enemies.length-1;i>=0;i--){
     const e = enemies[i]; if(e.exploding){ if(now >= e.removeAt){ enemies.splice(i,1); } continue; }
     e.y += e.s; if(e.y > H-20){ enemies.splice(i,1); loseLife(); }
   }
+
   for(let bi = bullets.length-1; bi >= 0; bi--){
     const b = bullets[bi];
     for(let ei = enemies.length-1; ei >= 0; ei--){
@@ -184,8 +210,11 @@ function update(){frame++;
       }
     }
   }
+
   for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x += p.dx; p.y += p.dy; p.dy += 0.12; p.life--; p.alpha = p.life/40; if(p.life <= 0) particles.splice(i,1); }
+
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
+
   if(enemies.length === 0 && !gameOver) nextProblem();
 }
 
@@ -205,12 +234,9 @@ function draw(){ctx.clearRect(0,0,W,H);
 
 function loop(){ if(gameOver) return; update(); draw(); requestAnimationFrame(loop); }
 
-// click/tap dispara desde la nave
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  player.x = x;
-  shoot();
+  targetX = e.clientX - rect.left;
 });
 
 function end(){gameOver=true;endScore.textContent=score;overlay.style.display='flex';bgm.pause();saveHigh();}
