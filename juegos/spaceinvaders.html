@@ -96,7 +96,7 @@ updateVH();window.addEventListener("resize",updateVH);window.addEventListener("o
 <script>
 (() => {
 const canvas=document.getElementById("canvas");const ctx=canvas.getContext("2d");
-let W,H,score,lives,enemies,bullets,player,frame,gameOver=false,canShoot=true;
+let W,H,score,lives,enemies,bullets,player,frame,gameOver=false;
 let speedLevel=1,diffLevel=1,problem;
 const scoreE=document.getElementById("score");const livesE=document.getElementById("lives");const probE=document.getElementById("problem");
 const overlay=document.getElementById("overlay");const endScore=document.getElementById("endScore");
@@ -159,7 +159,7 @@ function hitEnemy(index){
   e.removeAt = performance.now() + 300;
   createExplosion(e.x, e.y, e.explosionColor);
   if(sndExplode) try{sndExplode.currentTime=0; sndExplode.play();}catch(e){}
-  if(correct){ score += 10; scoreE.textContent = score; if(sndShoot) try{sndShoot.currentTime=0; sndShoot.play();}catch(e){}; setTimeout(()=>{ if(!gameOver) nextProblem(); }, 350);} 
+  if(correct){ score += 10; scoreE.textContent = score; setTimeout(()=>{ if(!gameOver) nextProblem(); }, 350);} 
   else { score = Math.max(0, score-5); scoreE.textContent = score; }
 }
 
@@ -168,8 +168,6 @@ function shoot(){
   if(sndShoot) try{ sndShoot.currentTime=0; sndShoot.play(); }catch(e){}
 }
 
-
-
 function update(){frame++; 
   bullets.forEach((b,i)=>{ b.y -= b.dy; if(b.y < 0) bullets.splice(i,1); });
   const now = performance.now();
@@ -177,19 +175,14 @@ function update(){frame++;
     const e = enemies[i]; if(e.exploding){ if(now >= e.removeAt){ enemies.splice(i,1); } continue; }
     e.y += e.s; if(e.y > H-20){ enemies.splice(i,1); loseLife(); }
   }
- for(let bi = bullets.length-1; bi >= 0; bi--){
-  const b = bullets[bi];
-  for(let ei = enemies.length-1; ei >= 0; ei--){
-    const e = enemies[ei];
-    if(e.exploding) continue;
-    if(b.x > e.x - e.w/2 && b.x < e.x + e.w/2 && b.y > e.y - e.h/2 && b.y < e.y + e.h/2){
-      bullets.splice(bi,1);
-      hitEnemy(ei); // aquí sí, al llegar la bala
-      break;
+  for(let bi = bullets.length-1; bi >= 0; bi--){
+    const b = bullets[bi];
+    for(let ei = enemies.length-1; ei >= 0; ei--){
+      const e = enemies[ei]; if(e.exploding) continue;
+      if(b.x > e.x - e.w/2 && b.x < e.x + e.w/2 && b.y > e.y - e.h/2 && b.y < e.y + e.h/2){
+        bullets.splice(bi,1); hitEnemy(ei); break;
+      }
     }
-  }
-}
-
   }
   for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x += p.dx; p.y += p.dy; p.dy += 0.12; p.life--; p.alpha = p.life/40; if(p.life <= 0) particles.splice(i,1); }
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
@@ -212,26 +205,18 @@ function draw(){ctx.clearRect(0,0,W,H);
 
 function loop(){ if(gameOver) return; update(); draw(); requestAnimationFrame(loop); }
 
-// Click en enemigos para disparar automáticamente
+// click/tap dispara desde la nave
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
-
-  // mover la nave suavemente hacia donde se tocó
   player.x = x;
-
-  // dispara UNA bala, sin tocar hitEnemy
   shoot();
 });
-
-
-
 
 function end(){gameOver=true;endScore.textContent=score;overlay.style.display='flex';bgm.pause();saveHigh();}
 
 document.getElementById('btnStart').onclick = start;
 document.getElementById('endBtn').onclick = ()=>{ document.getElementById('menu').classList.remove('hide'); document.getElementById('hud').classList.add('hide'); overlay.style.display='none'; };
-
 document.getElementById('shareBtn').onclick = async ()=>{ const text = `He conseguido ${score} puntos en Space Maths 🚀`; const url = window.location.href; if(navigator.share){ try{ await navigator.share({title:'Space Maths',text,url}); }catch(e){} } else { const tw = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; window.open(tw,'_blank'); } };
 
 function resizeCanvas(){ const scale = window.devicePixelRatio || 1; const viewH = window.innerHeight * 0.60; const viewW = document.querySelector('.game-wrap').clientWidth; canvas.width = viewW * scale; canvas.height = viewH * scale; ctx.setTransform(scale,0,0,scale,0,0); W = canvas.width/scale; H = canvas.height/scale; initStars(); }
