@@ -58,6 +58,8 @@
 <div id="lista"></div>
 
 <script>
+let contador = 0;
+const PALABRAS_POR_PARTIDA = 8;
 const TAM=10;
 let grid=[];
 let palabrasObjetivo=[];
@@ -71,7 +73,10 @@ const bancoPalabras = [
   "CAMELLO","CANGURO","HIPOPOTAMO","COCODRILO",
   "GATO","PERRO","PEZ","RATON","LEON","TIGRE",
   "OSO","ZORRO","JIRAFA","MONO","LORO",
-  "AMIGOS", "COLE", "COMIDA", "LIBRO"
+  "AMIGOS","COLE","COMIDA","LIBRO","COCHE,
+  "EMMA","ALBA","HUGO", "AGUACATE","GABI",
+  "JUGAR","PATINAR","TELAS","SALTAR","ABUELOS",
+  "ROMERO","FELIZ"
 ];
 
 /* ===== EMPEZAR ===== */
@@ -85,11 +90,16 @@ function generarJuego(palabras){
 
   palabras.sort(()=>Math.random()-0.5);
 
-  palabras.forEach(p=>{
-    if(colocarPalabra(p)){
+  let contador = 0;
+
+  for(let p of palabras){
+  if(contador >= PALABRAS_POR_PARTIDA) break;
+  if(colocarPalabra(p)){
       palabrasObjetivo.push(p);
+      contador++;
     }
-  });
+  }
+
 
   // Rellenar huecos
   for(let f=0;f<TAM;f++)
@@ -232,6 +242,7 @@ function marcarPalabraEncontrada(p){
 
 </body>
 </html>
+
 
 
 
