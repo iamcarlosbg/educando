@@ -165,8 +165,9 @@ function hitEnemy(index){
 
 function shoot(){
   bullets.push({x:player.x, y:player.y, dy:10});
-  if(sndShoot) try{ sndShoot.currentTime = 0; sndShoot.play(); }catch(e){}
+  if(sndShoot) try{ sndShoot.currentTime=0; sndShoot.play(); }catch(e){}
 }
+
 
 
 function update(){frame++; 
@@ -176,14 +177,19 @@ function update(){frame++;
     const e = enemies[i]; if(e.exploding){ if(now >= e.removeAt){ enemies.splice(i,1); } continue; }
     e.y += e.s; if(e.y > H-20){ enemies.splice(i,1); loseLife(); }
   }
-  for(let bi = bullets.length-1; bi >= 0; bi--){
-    const b = bullets[bi];
-    for(let ei = enemies.length-1; ei >= 0; ei--){
-      const e = enemies[ei]; if(e.exploding) continue;
-      if(b.x > e.x - e.w/2 && b.x < e.x + e.w/2 && b.y > e.y - e.h/2 && b.y < e.y + e.h/2){
-        bullets.splice(bi,1); hitEnemy(ei); break;
-      }
+ for(let bi = bullets.length-1; bi >= 0; bi--){
+  const b = bullets[bi];
+  for(let ei = enemies.length-1; ei >= 0; ei--){
+    const e = enemies[ei];
+    if(e.exploding) continue;
+    if(b.x > e.x - e.w/2 && b.x < e.x + e.w/2 && b.y > e.y - e.h/2 && b.y < e.y + e.h/2){
+      bullets.splice(bi,1);
+      hitEnemy(ei); // aquí sí, al llegar la bala
+      break;
     }
+  }
+}
+
   }
   for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x += p.dx; p.y += p.dy; p.dy += 0.12; p.life--; p.alpha = p.life/40; if(p.life <= 0) particles.splice(i,1); }
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
@@ -209,12 +215,15 @@ function loop(){ if(gameOver) return; update(); draw(); requestAnimationFrame(lo
 // Click en enemigos para disparar automáticamente
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left);
-  // Solo se mueve a la posición X del click y dispara
- player.x += (x - player.x) * 0.3; // animación suave
-  shoot();
+  const x = e.clientX - rect.left;
 
+  // mover la nave suavemente hacia donde se tocó
+  player.x = x;
+
+  // dispara UNA bala, sin tocar hitEnemy
+  shoot();
 });
+
 
 
 
