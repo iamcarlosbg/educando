@@ -163,7 +163,10 @@ function hitEnemy(index){
   else { score = Math.max(0, score-5); scoreE.textContent = score; }
 }
 
-function shoot(){if(!canShoot) return; canShoot=false; bullets.push({x:player.x,y:player.y,dy:10}); if(sndShoot) try{sndShoot.currentTime=0; sndShoot.play();}catch(e){}; setTimeout(()=>canShoot=true,200);}
+function shoot(){
+  bullets.push({x:player.x, y:player.y, dy:10});
+  if(sndShoot) try{ sndShoot.currentTime = 0; sndShoot.play(); }catch(e){}
+}
 
 function update(){frame++; 
   bullets.forEach((b,i)=>{ b.y -= b.dy; if(b.y < 0) bullets.splice(i,1); });
@@ -213,12 +216,13 @@ canvas.addEventListener('click', (e) => {
     if (x >= en.x - en.w/2 && x <= en.x + en.w/2 &&
         y >= en.y - en.h/2 && y <= en.y + en.h/2) {
       player.x = en.x;
-      shoot();
-      hitEnemy(i);
+      shoot();        // dispara una vez
+      hitEnemy(i);    // aplica el efecto del impacto
       break;
     }
   }
 });
+
 
 function end(){gameOver=true;endScore.textContent=score;overlay.style.display='flex';bgm.pause();saveHigh();}
 
