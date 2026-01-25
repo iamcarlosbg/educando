@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sopa de Letras</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family:Arial, sans-serif;
+  text-align:center;
+}
+
+#panel{
+  margin-bottom:10px;
+}
+
+#sopa{
+  display:grid;
+  grid-template-columns:repeat(10,1fr);
+  gap:4px;
+  max-width:320px;
+  margin:20px auto;
+  touch-action:none;
+}
+
+.celda{
+  width:30px;
+  height:30px;
+  border:1px solid #333;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  user-select:none;
+  cursor:pointer;
+}
+
+.celda.seleccion{ background:#ffe082; }
+.celda.encontrada{ background:#66bb6a; color:#fff; }
+
+.encontrada-palabra{
+  text-decoration:line-through;
+  color:green;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Sopa de Letras</h1>
+
+<div id="panel">
+  <select id="nivel">
+    <option value="5">Fácil (5 palabras)</option>
+    <option value="8" selected>Normal (8 palabras)</option>
+    <option value="12">Difícil (12 palabras)</option>
+  </select>
+  <button onclick="empezar()">Empezar juego</button>
+</div>
+
+<div id="sopa"></div>
+<div id="lista"></div>
+
+<script>
+/* ===== CONFIGURACIÓN ===== */
+const TAM = 10;
+const DIRECCIONES = [
+  {f:0,c:1},   // →
+  {f:1,c:0},   // ↓
+  {f:1,c:1},   // ↘
+  {f:1,c:-1}   // ↙
+];
+
+const bancoPalabras = [
+  "ELEFANTE","FLAMENCO","PINGUINO","RINOCERONTE",
+  "CAMELLO","CANGURO","HIPOPOTAMO","COCODRILO",
+  "GATO","PERRO","RATON","LEON","TIGRE","OSO",
+  "ZORRO","JIRAFA","MONO","LORO","COCHE",
+  "AMIGOS","COLE","COMIDA","LIBRO","EMMA",
+  "ALBA","HUGO","AGUACATE","JUGAR","SALTAR",
+  "ABUELOS","FELIZ"
+];
+
+/* ===== ESTADO ===== */
+let grid=[], palabrasObjetivo=[];
+let seleccion=[], seleccionando=false, direccion=null;
+
+/* ===== INICIO ===== */
+function empezar(){
+  const limite = +document.getElementById("nivel").value;
+  generarJuego(limite);
+}
+
+function generarJuego(maxPalabras){
+  grid = Array.from({length:TAM},()=>Array(TAM).fill(""));
+  palabrasObjetivo=[];
+  seleccion=[];
+
+  const palabras = [...bancoPalabras].sort(()=>Math.random()-0.5);
+  let colocadas=0;
+
+  for(let p of palabras){
+    if(colocadas>=maxPalabras) break;
+    if(colocarPalabra(p)){
+      palabrasObjetivo.push(p);
+      colocadas++;
+    }
+  }
+
+  for(let f=0;f<TAM;f++)
+    for(let c=0;c<TAM;c++)
+      if(!grid[f][c])
+        grid[f][c]=String.fromCharCode(65+Math.random()*26|0);
+
+  dibujar();
+  mostrarLista();
+}
+
+/* ===== COLOCAR PALABRAS ===== */
+function colocarPalabra(p){
+  for(let i=0;i<100;i++){
+    const d=DIRECCIONES[Math.random()*DIRECCIONES.length|0];
+    let f=Math.random()*TAM|0;
+    let c=Math.random()*TAM|0;
+    let ok=true;
+
+    for(let x=0;x<p.length;x++){
+      const nf=f+d.f*x, nc=c+d.c*x;
+      if(nf<0||nc<0||nf>=TAM||nc>=TAM ||
+        (grid[nf][nc] && grid[nf][nc]!==p[x])){
+        ok=false; break;
+      }
+    }
+
+    if(ok){
+      for(let x=0;x<p.length;x++)
+        grid[f+d.f*x][c+d.c*x]=p[x];
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ===== DIBUJO ===== */
+function dibujar(){
+  const s=document.getElementById("sopa");
+  s.innerHTML="";
+  for(let f=0;f<TAM;f++)
+    for(let c=0;c<TAM;c++){
+      const d=document.createElement("div");
+      d.className="celda";
+      d.textContent=grid[f][c];
+      d.dataset.f=f; d.dataset.c=c;
+      d.onpointerdown=inicio;
+      d.onpointerenter=arrastrar;
+      s.appendChild(d);
+    }
+}
+
+document.addEventListener("pointerup",fin);
+
+/* ===== SELECCIÓN ===== */
+function inicio(e){
+  e.preventDefault();
+  limpiarSeleccion();
+  seleccionando=true;
+  direccion=null;
+  marcar(this);
+}
+
+function arrastrar(){
+  if(seleccionando) marcar(this);
+}
+
+function fin(){
+  if(!seleccionando) return;
+  seleccionando=false;
+  comprobar();
+}
+
+function marcar(el){
+  const f=+el.dataset.f, c=+el.dataset.c;
+  if(seleccion.some(x=>x.f===f&&x.c===c)) return;
+
+  if(seleccion.length){
+    const o=seleccion[0];
+    if(!direccion){
+      direccion={f:Math.sign(f-o.f),c:Math.sign(c-o.c)};
+      if(!DIRECCIONES.some(d=>d.f===direccion.f&&d.c===direccion.c)) return;
+    }
+    if(f-o.f!==direccion.f*(seleccion.length)||c-o.c!==direccion.c*(seleccion.length)) return;
+  }
+
+  el.classList.add("seleccion");
+  seleccion.push({f,c,el});
+}
+
+function comprobar(){
+  const palabra=seleccion.map(x=>x.el.textContent).join("");
+  if(palabrasObjetivo.includes(palabra)){
+    seleccion.forEach(x=>{
+      x.el.classList.remove("seleccion");
+      x.el.classList.add("encontrada");
+    });
+    marcarPalabraEncontrada(palabra);
+  } else limpiarSeleccion();
+  seleccion=[];
+}
+
+function limpiarSeleccion(){
+  document.querySelectorAll(".seleccion").forEach(x=>x.classList.remove("seleccion"));
+}
+
+/* ===== LISTA ===== */
+function mostrarLista(){
+  document.getElementById("lista").innerHTML=
+    "<p><b>Busca:</b> "+
+    palabrasObjetivo.map(p=>`<span id="p_${p}">${p}</span>`).join(" · ")+
+    "</p>";
+}
+
+function marcarPalabraEncontrada(p){
+  const el=document.getElementById("p_"+p);
+  if(el) el.classList.add("encontrada-palabra");
+}
+</script>
+
+</body>
+</html>
