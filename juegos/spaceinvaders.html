@@ -16,9 +16,6 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Aria
 .stats{font-size:clamp(14px,3vw,18px);color:#1e3a8a}
 button.play{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer}
 canvas{width:100%;height:calc(var(--vh) * 60);display:block;background:transparent;border-top:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1}
-.touch-controls{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:20px}
-.btn-touch{background:#00000033;color:var(--text);padding:14px;border-radius:10px;min-width:60px;font-size:22px;font-weight:700;user-select:none;cursor:pointer;transition:0.1s}
-.btn-touch:active{transform:translateY(2px);background:#00000055}
 .overlay{position:absolute;inset:0;backdrop-filter:blur(4px);display:flex;justify-content:center;align-items:center}
 .overlay-card{background:#fff;padding:18px;border-radius:12px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
 .small{font-size:clamp(12px,2.8vw,15px);color:#475569}.hide{display:none!important}.hud-right{display:flex;gap:8px;align-items:center}.full-btn{background:#fff;padding:6px 8px;border-radius:8px;border:1px solid #e2e8f0;cursor:pointer}
@@ -26,7 +23,6 @@ canvas{width:100%;height:calc(var(--vh) * 60);display:block;background:transpare
 </head>
 <body>
 <div class="game-wrap" id="gameWrap">
-  
   
   <div id="menu" class="panel" style="flex-direction:column;text-align:center;">
     <h2>🚀 Space Maths</h2>
@@ -59,11 +55,6 @@ canvas{width:100%;height:calc(var(--vh) * 60);display:block;background:transpare
 
   <div style="position:relative;">
     <canvas id="canvas"></canvas>
-    <div class="touch-controls">
-      <div id="touchLeft" class="btn-touch">◀</div>
-      <div id="touchShoot" class="btn-touch">▲</div>
-      <div id="touchRight" class="btn-touch">▶</div>
-    </div>
 
     <div id="overlay" class="overlay" style="display:none;">
       <div class="overlay-card">
@@ -81,7 +72,7 @@ canvas{width:100%;height:calc(var(--vh) * 60);display:block;background:transpare
   <div style="padding:1em;text-align:center;">
     <h3>Sobre el juego</h3>
     <p class="small">
-      <strong>Space Maths</strong> es un minijuego educativo basado en space invader para mejorar el cálculo mental de los peques que están aprendiendo a sumar, restar o multiplicar.
+      <strong>Space Maths</strong> es un minijuego educativo basado en space invader para mejorar el cálculo mental de los peques.
     </p>
   </div>
 </div>
@@ -106,31 +97,30 @@ updateVH();window.addEventListener("resize",updateVH);window.addEventListener("o
 (() => {
 const canvas=document.getElementById("canvas");const ctx=canvas.getContext("2d");
 let W,H,score,lives,enemies,bullets,player,frame,gameOver=false,canShoot=true;
-let speedLevel=1,diffLevel=1,problem;const scoreE=document.getElementById("score");const livesE=document.getElementById("lives");const probE=document.getElementById("problem");const overlay=document.getElementById("overlay");const endScore=document.getElementById("endScore");const highDisplay=document.getElementById("highscore");const endHigh=document.getElementById("endHigh");const keys={left:false,right:false,shoot:false};
-
+let speedLevel=1,diffLevel=1,problem;
+const scoreE=document.getElementById("score");const livesE=document.getElementById("lives");const probE=document.getElementById("problem");
+const overlay=document.getElementById("overlay");const endScore=document.getElementById("endScore");
+const highDisplay=document.getElementById("highscore");const endHigh=document.getElementById("endHigh");
 const bgm=document.getElementById("bgm");const sndShoot=document.getElementById("sndShoot");const sndExplode=document.getElementById("sndExplode");
 const HIGH_KEY = 'spaceMathsHighScore_v1';let highScore = Number(localStorage.getItem(HIGH_KEY) || 0);highDisplay.textContent = highScore;
 
-// starfield
+// stars
 const stars = [];
 function initStars(){stars.length=0;const n = Math.max(40, Math.round((window.innerWidth/8)));for(let i=0;i<n;i++) stars.push({x:Math.random()*W,y:Math.random()*H,z:Math.random()*1.4});}
 
-function r(n){return Math.floor(Math.random()*n);} function rand(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function r(n){return Math.floor(Math.random()*n);} 
+function rand(a,b){return a+Math.floor(Math.random()*(b-a+1));}
 function genProblem(){const ops=diffLevel===1?["+"]:diffLevel===2?["+","-"]:["+","-","x"];const op=ops[r(ops.length)];let a=rand(1,12),b=rand(1,12);if(op==="-"&&a<b)[a,b]=[b,a];return {a,b,op,res:op==="+"?a+b:op==="-"?a-b:a*b};}
 
-// particles (explosions)
+// particles
 const particles = [];
-function createExplosion(x,y,color){
-  for(let i=0;i<26;i++){
-    particles.push({x,y,dx:(Math.random()-0.5)*6,dy:(Math.random()-0.5)*6,size:Math.random()*4+2,life:40,color,alpha:1});
-  }
-}
+function createExplosion(x,y,color){ for(let i=0;i<28;i++){ particles.push({ x: x + (Math.random()-0.5)*8, y: y + (Math.random()-0.5)*8, dx: (Math.random()-0.5)*6, dy: (Math.random()-0.5)*6, size: Math.random()*4+1.5, life: 40 + Math.random()*10, color: color, alpha:1 }); } }
 
 function spawnEnemies(){
   enemies=[];
   const n=rand(4,6);
   const correctIndex=r(n);
-  const baseSpeed=(speedLevel===1?0.01:speedLevel===2?0.4:0.8)/10; //divido paara que sea mas lento
+  const baseSpeed=(speedLevel===1?0.01:speedLevel===2?0.4:0.8)/10;
   const usedValues=new Set();
   const spacing=Math.max(60,(W-160)/n);
   const wBase = Math.max(48, Math.min(80, Math.floor((W-120)/n)));
@@ -139,30 +129,21 @@ function spawnEnemies(){
     let v;
     if(i===correctIndex){ v = problem.res; usedValues.add(v); }
     else{
-      // generar valor distinto al resultado y a los ya usados
       let attempts=0;
-      do{
-        v = rand(Math.max(0,problem.res-10),problem.res+10);
-        attempts++;
-        if(attempts>50) break;
-      } while(usedValues.has(v) || v===problem.res);
+      do{ v = rand(Math.max(0,problem.res-10),problem.res+10); attempts++; if(attempts>50) break; } while(usedValues.has(v) || v===problem.res);
       usedValues.add(v);
     }
-
     enemies.push({v,x:80 + i*spacing,y:rand(40,100),w:wBase,h:Math.max(40,Math.floor(wBase*0.6)),s:baseSpeed+Math.random()*0.4,exploding:false,explosionColor:null,removeAt:0});
   }
-
-  // seguridad: si por alguna razón no está el resultado, forzarlo en una posición aleatoria
-  if(!enemies.some(e=>e.v===problem.res)){
-    const idx = r(enemies.length);
-    enemies[idx].v = problem.res;
-  }
+  if(!enemies.some(e=>e.v===problem.res)){ const idx = r(enemies.length); enemies[idx].v = problem.res; }
 }
 
 function start(){
   speedLevel=+document.getElementById("speedLevel").value;diffLevel=+document.getElementById("diffLevel").value;
   document.getElementById("menu").classList.add("hide");document.getElementById("hud").classList.remove("hide");
-  resizeCanvas();score=0;lives=3;frame=0;bullets=[];enemies=[];particles.length=0;player={x:W/2,y:H-60,w:70,h:25};overlay.style.display="none";gameOver=false;nextProblem();bgm.volume=0.35;bgm.play().catch(()=>{});requestAnimationFrame(loop);
+  resizeCanvas();score=0;lives=3;frame=0;bullets=[];enemies=[];particles.length=0;
+  player={x:W/2,y:H-60,w:70,h:25};overlay.style.display="none";gameOver=false;nextProblem();
+  bgm.volume=0.35;bgm.play().catch(()=>{});requestAnimationFrame(loop);
 }
 
 function nextProblem(){problem=genProblem();probE.textContent=`${problem.a} ${problem.op} ${problem.b} = ?`;spawnEnemies();}
@@ -172,110 +153,83 @@ function saveHigh(){if(score>highScore){highScore=score;localStorage.setItem(HIG
 function loseLife(){if(navigator.vibrate) navigator.vibrate(150);lives--;livesE.textContent=lives;if(lives<=0)end();}
 
 function hitEnemy(index){
-  const e = enemies[index];
-  if(!e || e.exploding) return; // ya explotando, ignora
+  const e = enemies[index]; if(!e || e.exploding) return;
   const correct = (e.v === problem.res);
-  e.exploding = true;
-  e.explosionColor = correct ? '#34d399' : '#ef4444';
-  e.removeAt = performance.now() + 300; // marcar para eliminación
+  e.exploding = true; e.explosionColor = correct ? '#34d399' : '#ef4444';
+  e.removeAt = performance.now() + 300;
   createExplosion(e.x, e.y, e.explosionColor);
   if(sndExplode) try{sndExplode.currentTime=0; sndExplode.play();}catch(e){}
-
   if(correct){ score += 10; scoreE.textContent = score; if(sndShoot) try{sndShoot.currentTime=0; sndShoot.play();}catch(e){}; setTimeout(()=>{ if(!gameOver) nextProblem(); }, 350);} 
   else { score = Math.max(0, score-5); scoreE.textContent = score; }
 }
 
-function end(){gameOver=true;endScore.textContent=score;overlay.style.display='flex';bgm.pause();saveHigh();}
-
 function shoot(){if(!canShoot) return; canShoot=false; bullets.push({x:player.x,y:player.y,dy:10}); if(sndShoot) try{sndShoot.currentTime=0; sndShoot.play();}catch(e){}; setTimeout(()=>canShoot=true,200);}
 
-function update(){frame++; if(keys.left) player.x -= 5; if(keys.right) player.x += 5; player.x = Math.max(20, Math.min(W-20, player.x)); if(keys.shoot) shoot();
-
+function update(){frame++; 
   bullets.forEach((b,i)=>{ b.y -= b.dy; if(b.y < 0) bullets.splice(i,1); });
-
-  // mover enemigos y quitar los que ya cumplieron removeAt
   const now = performance.now();
   for(let i=enemies.length-1;i>=0;i--){
-    const e = enemies[i];
-    if(e.exploding){ if(now >= e.removeAt){ enemies.splice(i,1); } continue; }
+    const e = enemies[i]; if(e.exploding){ if(now >= e.removeAt){ enemies.splice(i,1); } continue; }
     e.y += e.s; if(e.y > H-20){ enemies.splice(i,1); loseLife(); }
   }
-
-  // detectar colisiones balas -> enemigos (usar indices actuales)
   for(let bi = bullets.length-1; bi >= 0; bi--){
     const b = bullets[bi];
     for(let ei = enemies.length-1; ei >= 0; ei--){
-      const e = enemies[ei];
-      if(e.exploding) continue; // no colisionar con los que ya explotan
+      const e = enemies[ei]; if(e.exploding) continue;
       if(b.x > e.x - e.w/2 && b.x < e.x + e.w/2 && b.y > e.y - e.h/2 && b.y < e.y + e.h/2){
-        bullets.splice(bi,1);
-        hitEnemy(ei);
-        break;
+        bullets.splice(bi,1); hitEnemy(ei); break;
       }
     }
   }
-
-  // partículas
   for(let i=particles.length-1;i>=0;i--){ const p = particles[i]; p.x += p.dx; p.y += p.dy; p.dy += 0.12; p.life--; p.alpha = p.life/40; if(p.life <= 0) particles.splice(i,1); }
-
-  // estrellas
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
-
   if(enemies.length === 0 && !gameOver) nextProblem();
 }
 
 function draw(){ctx.clearRect(0,0,W,H);
-  // fondo
   ctx.fillStyle = '#001026'; ctx.fillRect(0,0,W,H);
-  // estrellas
   for(const s of stars){ const size = 1.2 * s.z; ctx.globalAlpha = 0.9 * s.z; ctx.fillStyle = '#ffffff'; ctx.fillRect(s.x, s.y, size, size);} ctx.globalAlpha = 1;
-
-  // enemigos: color azul claro para todas las naves
   const enemyFontSize = (W < 420) ? 18 : 28; ctx.font = `bold ${enemyFontSize}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   enemies.forEach(e => {
-    if(e.exploding){ // mostrar círculo de explosión con color adecuado
-      ctx.fillStyle = e.explosionColor || '#ef4444'; ctx.beginPath(); ctx.arc(e.x, e.y, Math.max(e.w,e.h)/1.2, 0, Math.PI*2); ctx.fill(); return;
-    }
+    if(e.exploding){ ctx.fillStyle = e.explosionColor || '#ef4444'; ctx.beginPath(); ctx.arc(e.x, e.y, Math.max(e.w,e.h)/1.2, 0, Math.PI*2); ctx.fill(); return;}
     ctx.fillStyle = '#93c5fd'; ctx.fillRect(e.x - e.w/2, e.y - e.h/2, e.w, e.h);
     ctx.fillStyle = '#000'; ctx.fillText(e.v, e.x, e.y);
   });
-
-  // jugador
   ctx.fillStyle = '#1d4ed8'; ctx.beginPath(); ctx.moveTo(player.x,player.y-15); ctx.lineTo(player.x-35,player.y+20); ctx.lineTo(player.x+35,player.y+20); ctx.closePath(); ctx.fill();
-
-  // balas
   ctx.fillStyle = '#1e3a8a'; bullets.forEach(b => ctx.fillRect(b.x-3, b.y-12, 6, 12));
-
-  // partículas
   for(const p of particles){ ctx.globalAlpha = Math.max(0, p.alpha); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } ctx.globalAlpha = 1;
 }
 
 function loop(){ if(gameOver) return; update(); draw(); requestAnimationFrame(loop); }
 
-// controles táctiles y ratón
-function hold(btn,key){ btn.addEventListener('touchstart',e=>{e.preventDefault();keys[key]=true}); btn.addEventListener('touchend',e=>{e.preventDefault();keys[key]=false}); btn.addEventListener('mousedown',()=>keys[key]=true); btn.addEventListener('mouseup',()=>keys[key]=false); btn.addEventListener('mouseleave',()=>keys[key]=false); }
-hold(document.getElementById('touchLeft'),'left'); hold(document.getElementById('touchRight'),'right');
-document.getElementById('touchShoot').addEventListener('touchstart',e=>{e.preventDefault(); shoot();}); document.getElementById('touchShoot').addEventListener('mousedown',shoot);
+// Click en enemigos para disparar automáticamente
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left);
+  const y = (e.clientY - rect.top);
+
+  for (let i = 0; i < enemies.length; i++) {
+    const en = enemies[i];
+    if (x >= en.x - en.w/2 && x <= en.x + en.w/2 &&
+        y >= en.y - en.h/2 && y <= en.y + en.h/2) {
+      player.x = en.x;
+      shoot();
+      hitEnemy(i);
+      break;
+    }
+  }
+});
+
+function end(){gameOver=true;endScore.textContent=score;overlay.style.display='flex';bgm.pause();saveHigh();}
 
 document.getElementById('btnStart').onclick = start;
 document.getElementById('endBtn').onclick = ()=>{ document.getElementById('menu').classList.remove('hide'); document.getElementById('hud').classList.add('hide'); overlay.style.display='none'; };
 
 document.getElementById('shareBtn').onclick = async ()=>{ const text = `He conseguido ${score} puntos en Space Maths 🚀`; const url = window.location.href; if(navigator.share){ try{ await navigator.share({title:'Space Maths',text,url}); }catch(e){} } else { const tw = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`; window.open(tw,'_blank'); } };
 
-// fullscreen fallback manual para iOS
-const fsBtn = document.getElementById('fullscreenBtn'); let manualFull = false; let prevBodyOverflow=''; fsBtn.addEventListener('click', async ()=>{ const el = document.getElementById('gameWrap'); if(document.fullscreenElement){ await document.exitFullscreen().catch(()=>{}); return; } if(el.requestFullscreen){ try{ await el.requestFullscreen(); return; }catch(e){} } // fallback manual
-  manualFull = !manualFull; if(manualFull){ prevBodyOverflow = document.body.style.overflow; el.classList.add('manual-full'); document.body.style.overflow='hidden'; updateVH(); resizeCanvas(); fsBtn.textContent='Salir'; } else { el.classList.remove('manual-full'); document.body.style.overflow = prevBodyOverflow || ''; updateVH(); resizeCanvas(); fsBtn.textContent='Pantalla'; } });
-
-// crear partículas de explosión (usa color pasado)
-function createExplosion(x,y,color){ for(let i=0;i<28;i++){ particles.push({ x: x + (Math.random()-0.5)*8, y: y + (Math.random()-0.5)*8, dx: (Math.random()-0.5)*6, dy: (Math.random()-0.5)*6, size: Math.random()*4+1.5, life: 40 + Math.random()*10, color: color, alpha:1 }); } }
-
-// sonidos simples
-// (sndShoot/sndExplode están definidos en audio tags)
-
 function resizeCanvas(){ const scale = window.devicePixelRatio || 1; const viewH = window.innerHeight * 0.60; const viewW = document.querySelector('.game-wrap').clientWidth; canvas.width = viewW * scale; canvas.height = viewH * scale; ctx.setTransform(scale,0,0,scale,0,0); W = canvas.width/scale; H = canvas.height/scale; initStars(); }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
-
 })();
 </script>
 </body>
