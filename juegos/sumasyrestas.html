@@ -1,0 +1,182 @@
+<style>
+  .contenedor-juego {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 25px;
+    border: 3px solid #4CAF50;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #f9fff9, #e9ffe9);
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+  }
+  .contenedor-juego h2 { color: #2e7d32; margin-bottom: 15px; }
+  .linea { display: flex; justify-content: center; flex-wrap: nowrap; margin-bottom: 5px; }
+  .columna { display: fluex; flex-direction: column; align-items: center; margin: 1px; }
+  .celda, input { width: 35px; height: 35px; font-size: 22px; text-align: center; border-radius: 6px; border: 1px solid #aaa; margin: 1px 0; box-sizing: border-box; }
+  input { -moz-appearance: textfield; }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #nombreJugador { width: 200px; font-size: 16px; padding: 5px 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #aaa; }
+  .correct { background-color: #b2ffb2; } 
+  .wrong { background-color: #ffb2b2; } 
+  .linea-horizontal {
+    height: 3px;
+    background-color: #333;
+    margin: 2px 0 5px 0;
+    width: 100%;
+  }
+  #contador { font-size: 18px; font-weight: bold; color: #2e7d32; margin-top: 15px; }
+  button { font-size: 16px; padding: 8px 10px; margin: 5px; border-radius: 8px; border: none; background-color: #4CAF50; color: white; cursor: pointer; transition: background 0.3s; }
+  button:hover { background-color: #45a049; }
+</style>
+
+<div class="contenedor-juego">
+  <h2>🧮 Juego de Sumas y Restas</h2>
+  <label>Tu nombre:</label><br>
+  <input type="text" id="nombreJugador" placeholder="Escribe tu nombre"><br><br>
+  <label>Tipo de operación:</label>
+  <select id="tipoOperacion">
+    <option value="ambas">Sumas y Restas</option>
+    <option value="suma">Solo Sumas</option>
+    <option value="resta">Solo Restas</option>
+  </select><br>
+  <label>Número de cifras:</label>
+  <select id="numCifras">
+    <option value="1">1 cifra</option>
+    <option value="2">2 cifras</option>
+    <option value="3">3 cifras</option>
+  </select><br>
+  <label><input type="checkbox" id="conLlevadas"> Permitir llevadas</label><br><br>
+  <button id="btnComenzar">Comenzar juego</button>
+  <button id="btnNueva">Probar otra</button>
+  <hr>
+  <div id="lineas" class="linea"></div>
+  <div class="linea-horizontal" id="lineaHorizontal"></div>
+  <div id="contador">Aciertos: 0</div>
+</div>
+
+  <div style="padding:1em;text-align:center;">
+    <h3>Sobre 🚀 Juego de Sumas y Restas Interactivo</h3>
+    <p class="small">
+      <strong>Sumas y restas como en papel</strong> 
+     
+<p><strong>Descripción:</strong><br>
+  ¡Aprende y practica matemáticas de manera divertida! Este juego educativo permite trabajar con <strong>sumas y restas de hasta 3 cifras</strong>, seleccionando el <strong>tipo de operación</strong> que prefieras y si quieres <strong>llevar o no llevadas</strong>.<br>
+  Cada ejercicio te permite <strong>anotar cada cifra paso a paso</strong> y las llevadas, indicando automáticamente si tu respuesta es <strong>correcta o incorrecta</strong>. Así, los jugadores pueden aprender el procedimiento de forma práctica, reforzando la comprensión de las operaciones y mejorando la agilidad mental.</p>
+  
+  <p><strong>Características principales:</strong><br>
+  - Sumas y restas de 1 a 3 cifras.<br>
+  - Opción de incluir o excluir llevadas.<br>
+  - Sistema interactivo que valida cada cifra y cada llevada.<br>
+  - Retroalimentación inmediata: aciertos y errores se muestran al instante.<br>
+  - Ideal para niños, estudiantes y cualquier persona que quiera reforzar cálculos mentales.</p>
+  
+  <p><strong>Beneficios para los usuarios:</strong><br>
+  - Mejora el cálculo mental y la precisión en operaciones.<br>
+  - Refuerza el aprendizaje de sumas y restas paso a paso.<br>
+  - Combina diversión y educación en un mismo juego.</p>
+  
+  <p><strong>Cómo usarlo:</strong><br>
+  Selecciona el tipo de operación y número de cifras, marca si quieres incluir llevadas y empieza a resolver los ejercicios. Cada cifra que ingreses será validada y recibirás retroalimentación inmediata, fomentando el aprendizaje activo.</p>
+  
+  <p><strong>¡Perfecto para escuelas, homeschooling o reforzar matemáticas en casa!</strong></p>
+      
+    </p>
+  </div>
+
+<script>
+let num1,num2,operador,resultado,aciertos=0;
+let nombre="";
+
+function splitDigits(num,length){ return num.toString().padStart(length,'0').split('').map(Number); }
+
+// Genera números sin llevadas si se desactiva la opción
+function generarNumeros(cifras, permitirLlevadas, operador){
+    let a=[], b=[];
+    for(let i=0;i<cifras;i++){
+        a.push(Math.floor(Math.random()*10));
+        b.push(Math.floor(Math.random()*10));
+    }
+
+    if(!permitirLlevadas){
+        if(operador==="+"){
+            for(let i=cifras-1;i>=0;i--){
+                if(a[i]+b[i]>9) b[i]=9-a[i];
+            }
+        } else if(operador==="-"){
+            for(let i=cifras-1;i>=0;i--){
+                if(a[i]<b[i]) b[i]=a[i];
+            }
+        }
+    }
+
+    let num1=parseInt(a.join(''));
+    let num2=parseInt(b.join(''));
+    if(operador==="-" && num1<num2) [num1,num2]=[num2,num1];
+    return [num1,num2];
+}
+
+function nuevaPregunta(){
+  nombre=document.getElementById("nombreJugador").value.trim()||"Jugador";
+  const tipo=document.getElementById("tipoOperacion").value;
+  const cifras=parseInt(document.getElementById("numCifras").value);
+  const conLlevadas=document.getElementById("conLlevadas").checked;
+  operador=tipo==="suma"?"+":tipo==="resta"? "-": Math.random()<0.5?"+":"-";
+
+  [num1,num2]=generarNumeros(cifras, conLlevadas, operador);
+  resultado=operador==="+"? num1+num2 : num1-num2;
+  renderProblem();
+}
+
+function renderProblem(){
+  const lineasDiv=document.getElementById('lineas');
+  lineasDiv.innerHTML='';
+  const maxCifras=Math.max(num1.toString().length,num2.toString().length,resultado.toString().length);
+  const cifras1=splitDigits(num1,maxCifras);
+  const cifras2=splitDigits(num2,maxCifras);
+  const resDigits=splitDigits(resultado,maxCifras);
+
+  const resultadoInputs=[];
+
+  for(let i=0;i<maxCifras;i++){
+    const col=document.createElement('div'); col.className='columna';
+
+    // Llevar
+    if(i<maxCifras-1){ const carry=document.createElement('input'); carry.type='text'; carry.maxLength=1; col.appendChild(carry); }
+    else{ const carry=document.createElement('div'); carry.className='celda'; col.appendChild(carry); }
+
+    // Operando superior
+    const sup=document.createElement('div'); sup.className='celda'; sup.textContent=cifras1[i]; col.appendChild(sup);
+
+    // Operando inferior
+    const inf=document.createElement('div'); inf.className='celda';
+    // Símbolo en fila del segundo operando, solo en la primera columna
+    if(i===0) inf.textContent = operador;
+    else inf.textContent = '';
+    col.appendChild(inf);
+    inf.appendChild(document.createTextNode(cifras2[i])); // dígito separado del símbolo
+
+    // Resultado
+    const res=document.createElement('input'); res.type='text'; res.maxLength=1; res.className='resultado';
+    res.addEventListener('input',()=>checkResult(resultadoInputs,resDigits));
+    col.appendChild(res);
+    resultadoInputs.push(res);
+
+    lineasDiv.appendChild(col);
+  }
+}
+
+// Validación correcta
+function checkResult(inputs,resDigits){
+  let correcto=true;
+  inputs.forEach((input,i)=>{
+    if(input.value===''){ input.classList.remove('correct','wrong'); correcto=false; }
+    else if(parseInt(input.value)===resDigits[i]){ input.classList.add('correct'); input.classList.remove('wrong'); }
+    else{ input.classList.add('wrong'); input.classList.remove('correct'); correcto=false; }
+  });
+  if(correcto){ aciertos++; document.getElementById('contador').textContent=`Aciertos: ${aciertos}`; setTimeout(nuevaPregunta,500); }
+}
+
+document.getElementById('btnComenzar').addEventListener('click',nuevaPregunta);
+document.getElementById('btnNueva').addEventListener('click',nuevaPregunta);
+</script>
