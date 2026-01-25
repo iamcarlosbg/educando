@@ -191,6 +191,7 @@ function update(){frame++;
     } else {
       player.x += dx * 0.2;
     }
+
   }
 
   bullets.forEach((b,i)=>{ b.y -= b.dy; if(b.y < 0) bullets.splice(i,1); });
@@ -215,7 +216,9 @@ function update(){frame++;
 
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
 
-  if(enemies.length === 0 && !gameOver) nextProblem();
+  // solo generar nueva cuenta cuando no hay enemigos y no hay balas
+  if(enemies.length === 0 && bullets.length === 0 && !gameOver) nextProblem();
+
 }
 
 function draw(){ctx.clearRect(0,0,W,H);
