@@ -22,7 +22,6 @@
   .celda, input { width: 35px; height: 35px; font-size: 22px; text-align: center; border-radius: 6px; border: 1px solid #aaa; margin: 1px 0; box-sizing: border-box; }
   input { -moz-appearance: textfield; }
   input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  #nombreJugador { width: 200px; font-size: 16px; padding: 5px 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #aaa; }
   .correct { background-color: #b2ffb2; } 
   .wrong { background-color: #ffb2b2; } 
   .linea-horizontal { height: 3px; background-color: #333; margin: 5px 0 10px 0; width: 100%; }
@@ -31,7 +30,6 @@
   button:hover { background-color: #45a049; }
   @media (max-width: 600px){
     .celda, input { width: 30px; height: 30px; font-size: 18px; }
-    #nombreJugador { width: 150px; }
   }
 </style>
 </head>
@@ -39,8 +37,6 @@
 
 <div class="contenedor-juego">
   <h2>🧮 Juego de Sumas y Restas</h2>
-  <label>Tu nombre:</label><br>
-  <input type="text" id="nombreJugador" placeholder="Escribe tu nombre"><br><br>
 
   <label>Tipo de operación:</label>
   <select id="tipoOperacion">
@@ -68,7 +64,7 @@
 </div>
 
 <script>
-let num1,num2,operador,resultado,aciertos=0;
+let num1, num2, operador, resultado, aciertos=0;
 
 // Convierte número a array de dígitos con ceros delante
 function splitDigits(num,length){ return num.toString().padStart(length,'0').split('').map(Number); }
@@ -101,7 +97,6 @@ function generarNumeros(cifras, permitirLlevadas, operador){
 
 // Genera nueva pregunta
 function nuevaPregunta(){
-  const nombre=document.getElementById("nombreJugador").value.trim()||"Jugador";
   const tipo=document.getElementById("tipoOperacion").value;
   const cifras=parseInt(document.getElementById("numCifras").value);
   const conLlevadas=document.getElementById("conLlevadas").checked;
