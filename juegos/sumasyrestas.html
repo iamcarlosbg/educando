@@ -24,38 +24,83 @@
     background: linear-gradient(180deg, #f9fff9, #e9ffe9);
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
   }
 
-  .contenedor-juego h2 {
+  h2 {
+    font-size: 28px;
     color: #2e7d32;
-    margin-bottom: 25px;
-    font-size: 30px;
+    margin-bottom: 10px;
   }
 
-  label {
+  .campo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .checkbox {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+
+  select {
     font-size: 20px;
-    display: block;
-    margin-bottom: 5px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
   }
 
-  select, input[type="checkbox"], button {
+  .botones {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  button {
+    font-size: 20px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  button:hover { background-color: #45a049; }
+
+  #contador {
     font-size: 22px;
-    margin-bottom: 15px;
+    font-weight: bold;
+    color: #2e7d32;
   }
 
+  .linea-horizontal {
+    height: 2px;
+    background-color: #333;
+    margin: 10px 0;
+  }
+
+  /* Problemas y resultados */
   .linea {
     display: flex;
     justify-content: center;
-    gap: 10px; /* espacio entre columnas */
+    gap: 10px;
     flex-wrap: nowrap;
-    margin-bottom: 15px; /* espacio entre filas de problemas */
+    margin-bottom: 15px;
   }
 
   .columna {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px; /* espacio dentro de la columna */
+    gap: 5px;
   }
 
   .celda, input {
@@ -74,39 +119,11 @@
   }
 
   .correct { background-color: #b2ffb2; } 
-  .wrong { background-color: #ffb2b2; } 
-
-  .linea-horizontal {
-    height: 3px;
-    background-color: #333;
-    margin: 15px 0;
-    width: 100%;
-  }
-
-  #contador {
-    font-size: 22px;
-    font-weight: bold;
-    color: #2e7d32;
-    margin-top: 15px;
-  }
-
-  button {
-    font-size: 22px;
-    padding: 12px 18px;
-    margin: 10px 5px;
-    border-radius: 10px;
-    border: none;
-    background-color: #4CAF50;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  button:hover { background-color: #45a049; }
+  .wrong { background-color: #ffb2b2; }
 
   @media (max-width: 600px) {
     .celda, input { width: 40px; height: 40px; font-size: 20px; }
-    select, button { font-size: 20px; }
+    select, button { font-size: 18px; }
     .linea { gap: 6px; }
     .columna { gap: 3px; }
   }
@@ -117,23 +134,30 @@
 <div class="contenedor-juego">
   <h2>🧮 Juego de Sumas y Restas</h2>
 
-  <label>Tipo de operación:</label>
-  <select id="tipoOperacion">
-    <option value="ambas">Sumas y Restas</option>
-    <option value="suma">Solo Sumas</option>
-    <option value="resta">Solo Restas</option>
-  </select>
+  <div class="campo">
+    <label>Tipo de operación:</label>
+    <select id="tipoOperacion">
+      <option value="ambas">Sumas y Restas</option>
+      <option value="suma">Solo Sumas</option>
+      <option value="resta">Solo Restas</option>
+    </select>
+  </div>
 
-  <label>Número de cifras:</label>
-  <select id="numCifras">
-    <option value="1">1 cifra</option>
-    <option value="2">2 cifras</option>
-    <option value="3">3 cifras</option>
-  </select>
+  <div class="campo">
+    <label>Número de cifras:</label>
+    <select id="numCifras">
+      <option value="1">1 cifra</option>
+      <option value="2">2 cifras</option>
+      <option value="3">3 cifras</option>
+    </select>
+  </div>
 
-  <label><input type="checkbox" id="conLlevadas"> Con llevadas</label>
+  <div class="campo checkbox">
+    <input type="checkbox" id="conLlevadas">
+    <label for="conLlevadas">Con llevadas</label>
+  </div>
 
-  <div>
+  <div class="botones">
     <button id="btnComenzar">Comenzar juego</button>
     <button id="btnNueva">Probar otra</button>
   </div>
