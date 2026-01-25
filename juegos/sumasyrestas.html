@@ -5,34 +5,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Juego de Sumas y Restas</title>
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background:#f0f0f0; margin:0; padding:0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+  }
+
   .contenedor-juego {
     max-width: 500px;
+    width: 100%;
     margin: 30px auto;
-    padding: 25px;
+    padding: 30px;
     border: 3px solid #4CAF50;
     border-radius: 20px;
     background: linear-gradient(180deg, #f9fff9, #e9ffe9);
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
     text-align: center;
   }
-  .contenedor-juego h2 { color: #2e7d32; margin-bottom: 15px; font-size: 28px; }
-  label { font-size: 20px; }
-  select, input[type="checkbox"], button { font-size: 22px; }
-  .linea { display: flex; justify-content: center; flex-wrap: nowrap; margin-bottom: 10px; }
-  .columna { display: flex; flex-direction: column; align-items: center; margin: 1px; }
-  .celda, input { width: 40px; height: 40px; font-size: 24px; text-align: center; border-radius: 6px; border: 1px solid #aaa; margin: 1px 0; box-sizing: border-box; }
-  input { -moz-appearance: textfield; }
-  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .contenedor-juego h2 {
+    color: #2e7d32;
+    margin-bottom: 25px;
+    font-size: 30px;
+  }
+
+  label {
+    font-size: 20px;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  select, input[type="checkbox"], button {
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+
+  .linea {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* espacio entre columnas */
+    flex-wrap: nowrap;
+    margin-bottom: 15px; /* espacio entre filas de problemas */
+  }
+
+  .columna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px; /* espacio dentro de la columna */
+  }
+
+  .celda, input {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    box-sizing: border-box;
+  }
+
+  input[type="text"].resultado {
+    border: 2px solid #4CAF50;
+    font-weight: bold;
+  }
+
   .correct { background-color: #b2ffb2; } 
   .wrong { background-color: #ffb2b2; } 
-  .linea-horizontal { height: 3px; background-color: #333; margin: 5px 0 10px 0; width: 100%; }
-  #contador { font-size: 22px; font-weight: bold; color: #2e7d32; margin-top: 15px; }
-  button { font-size: 22px; padding: 10px 12px; margin: 5px; border-radius: 8px; border: none; background-color: #4CAF50; color: white; cursor: pointer; transition: background 0.3s; }
+
+  .linea-horizontal {
+    height: 3px;
+    background-color: #333;
+    margin: 15px 0;
+    width: 100%;
+  }
+
+  #contador {
+    font-size: 22px;
+    font-weight: bold;
+    color: #2e7d32;
+    margin-top: 15px;
+  }
+
+  button {
+    font-size: 22px;
+    padding: 12px 18px;
+    margin: 10px 5px;
+    border-radius: 10px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
   button:hover { background-color: #45a049; }
-  @media (max-width: 600px){
-    .celda, input { width: 35px; height: 35px; font-size: 20px; }
+
+  @media (max-width: 600px) {
+    .celda, input { width: 40px; height: 40px; font-size: 20px; }
     select, button { font-size: 20px; }
+    .linea { gap: 6px; }
+    .columna { gap: 3px; }
   }
 </style>
 </head>
@@ -46,20 +122,22 @@
     <option value="ambas">Sumas y Restas</option>
     <option value="suma">Solo Sumas</option>
     <option value="resta">Solo Restas</option>
-  </select><br>
+  </select>
 
   <label>Número de cifras:</label>
   <select id="numCifras">
     <option value="1">1 cifra</option>
     <option value="2">2 cifras</option>
     <option value="3">3 cifras</option>
-  </select><br>
+  </select>
 
-  <label><input type="checkbox" id="conLlevadas"> Con llevadas</label><br><br>
+  <label><input type="checkbox" id="conLlevadas"> Con llevadas</label>
 
-  <button id="btnComenzar">Comenzar juego</button>
-  <button id="btnNueva">Probar otra</button>
-  
+  <div>
+    <button id="btnComenzar">Comenzar juego</button>
+    <button id="btnNueva">Probar otra</button>
+  </div>
+
   <hr class="linea-horizontal">
   <div id="lineas" class="linea"></div>
   <div class="linea-horizontal"></div>
@@ -69,10 +147,8 @@
 <script>
 let num1, num2, operador, resultado, aciertos=0;
 
-// Convierte número a array de dígitos con ceros delante
 function splitDigits(num,length){ return num.toString().padStart(length,'0').split('').map(Number); }
 
-// Genera números según cifras, llevadas y operación
 function generarNumeros(cifras, permitirLlevadas, operador){
     let a=[], b=[];
     for(let i=0;i<cifras;i++){
@@ -98,7 +174,6 @@ function generarNumeros(cifras, permitirLlevadas, operador){
     return [num1,num2];
 }
 
-// Genera nueva pregunta
 function nuevaPregunta(){
   const tipo=document.getElementById("tipoOperacion").value;
   const cifras=parseInt(document.getElementById("numCifras").value);
@@ -112,7 +187,6 @@ function nuevaPregunta(){
   renderProblem();
 }
 
-// Renderiza problema en la pantalla
 function renderProblem(){
   const lineasDiv=document.getElementById('lineas');
   lineasDiv.innerHTML='';
@@ -154,7 +228,6 @@ function renderProblem(){
   }
 }
 
-// Validación de los resultados
 function checkResult(inputs,resDigits){
   let correcto=true;
   inputs.forEach((input,i)=>{
