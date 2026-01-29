@@ -217,7 +217,7 @@ function update(){frame++;
   stars.forEach(s=>{ s.y += 0.45 * s.z; if(s.y > H) s.y = 0; });
 
   // solo generar nueva cuenta cuando no hay enemigos y no hay balas
-  if( bullets.length === 0 && !gameOver) nextProblem();
+  if( enemies.lenght === 0 && bullets.length === 0 && !gameOver) nextProblem();
 
 }
 
