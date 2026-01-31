@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es">
 <head>
+  <link rel="stylesheet" href="../css/estilos.css">
+
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
 <title>Space Maths</title>
@@ -21,7 +23,6 @@ canvas{width:100%;height:calc(var(--vh) * 60);display:block;background:transpare
 </style>
 </head>
 <body>
-  <button class="btn-inicio" onclick="irInicioOAtras()">⬅ Inicio</button>
 
 <div class="game-wrap" id="gameWrap">
   
@@ -255,5 +256,7 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 })();
 </script>
+  <script src="../js/comun.js"></script>
+
 </body>
 </html>
